@@ -85,7 +85,7 @@ variable "secondary_vpn_subnet_cidr" {
 
 variable "jenkins_fqdn" {
   type        = string
-  default     = "jenkins.np.dglearn.online"
+  default     = "jenkins.learningmyway.space"
   description = "FQDN for Jenkins"
 }
 
