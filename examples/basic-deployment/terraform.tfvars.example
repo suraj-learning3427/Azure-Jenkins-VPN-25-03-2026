@@ -1,0 +1,44 @@
+# Example configuration for basic Azure Firezone Gateway deployment
+
+# Basic Configuration
+name_prefix = "mycompany-"
+location    = "East US"
+
+# VM Configuration
+vm_size        = "Standard_B2s"
+instance_count = 1
+admin_username = "azureuser"
+
+# SSH Key - Replace with your actual public key
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ... your-public-key-here"
+
+# Network Configuration
+enable_public_ip     = false  # Using NAT Gateway instead
+enable_load_balancer = false  # Single instance doesn't need load balancer
+enable_nat_gateway   = true   # For outbound internet access
+
+# Firezone Configuration - Get token from your Firezone portal
+firezone_token   = "fz_token_your_actual_token_here"
+firezone_api_url = "wss://api.firezone.dev"
+firezone_version = "latest"
+
+# Logging
+log_level  = "info"
+log_format = "human"
+
+# Health Check Configuration
+health_check = {
+  port                = 8080
+  path                = "/healthz"
+  interval_seconds    = 15
+  timeout_seconds     = 10
+  unhealthy_threshold = 3
+}
+
+# Tags
+tags = {
+  Environment = "development"
+  Project     = "firezone-gateway"
+  Owner       = "infrastructure-team"
+  CostCenter  = "IT"
+}

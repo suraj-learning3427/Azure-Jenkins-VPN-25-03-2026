@@ -1,0 +1,136 @@
+#cloud-config
+# Azure Firezone Gateway Cloud-Init Configuration
+# Equivalent to GCP cloud-init template
+
+write_files:
+  - path: /etc/systemd/system/firezone-gateway.service
+    permissions: "0644"
+    owner: root:root
+    content: |
+      [Unit]
+      Description=Firezone Gateway
+      After=network.target
+      Wants=network.target
+
+      [Service]
+      Type=exec
+      ExecStart=/usr/local/bin/firezone-gateway
+      Restart=always
+      RestartSec=5
+      User=firezone
+      Group=firezone
+      Environment=FIREZONE_TOKEN=${firezone_token}
+      Environment=FIREZONE_API_URL=${firezone_api_url}
+      Environment=RUST_LOG=${log_level}
+      Environment=FIREZONE_LOG_FORMAT=${log_format}
+
+      [Install]
+      WantedBy=multi-user.target
+
+  - path: /etc/azure-monitor-agent/config.json
+    permissions: "0644"
+    owner: root
+    content: |
+      {
+        "version": "1.0",
+        "logs": {
+          "syslog": {
+            "enabled": true,
+            "facilities": ["*"]
+          },
+          "application": {
+            "enabled": true,
+            "paths": ["/var/log/firezone-gateway.log"]
+          }
+        },
+        "metrics": {
+          "system": {
+            "enabled": true,
+            "interval": "60s"
+          }
+        }
+      }
+
+# Create swap file if specified
+swap:
+  filename: /swapfile
+  size: ${swap_size_gb}G
+  maxsize: ${swap_size_gb}G
+
+# Package updates and installations
+package_update: true
+package_upgrade: true
+
+packages:
+  - curl
+  - wget
+  - unzip
+  - systemd
+  - ca-certificates
+
+# User creation
+users:
+  - name: firezone
+    system: true
+    shell: /bin/false
+    home: /var/lib/firezone
+    create_home: true
+
+runcmd:
+  # Install Firezone Gateway
+  - |
+    export FIREZONE_TOKEN="${firezone_token}"
+    export FIREZONE_ID="$(head -c 32 /dev/urandom | sha256sum | cut -d' ' -f1)"
+    export FIREZONE_API_URL="${firezone_api_url}"
+    export FIREZONE_VERSION="${firezone_version}"
+    export FIREZONE_ARTIFACT_URL="${firezone_artifact_url}"
+    export FIREZONE_LOG_FORMAT="${log_format}"
+    export RUST_LOG="${log_level}"
+    
+    # Download and install Firezone Gateway
+    curl -fsSL https://raw.githubusercontent.com/firezone/firezone/main/scripts/gateway-systemd-install.sh -o /tmp/gateway-install.sh
+    chmod +x /tmp/gateway-install.sh
+    bash /tmp/gateway-install.sh
+
+  # Install Azure Monitor Agent (optional)
+  - |
+    wget https://aka.ms/azcmagent -O /tmp/install_linux_azcmagent.sh
+    chmod +x /tmp/install_linux_azcmagent.sh
+    bash /tmp/install_linux_azcmagent.sh
+
+  # Configure firewall rules for WireGuard
+  - |
+    ufw allow 51820/udp comment 'WireGuard'
+    ufw allow 22/tcp comment 'SSH'
+    ufw allow ${health_check.port}/tcp comment 'Health Check'
+    ufw --force enable
+
+  # Enable IP forwarding for gateway functionality
+  - |
+    echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf
+    echo 'net.ipv6.conf.all.forwarding=1' >> /etc/sysctl.conf
+    sysctl -p
+
+  # Start and enable Firezone Gateway service
+  - systemctl daemon-reload
+  - systemctl enable firezone-gateway
+  - systemctl start firezone-gateway
+
+  # Set up log rotation
+  - |
+    cat > /etc/logrotate.d/firezone-gateway << EOF
+    /var/log/firezone-gateway.log {
+        daily
+        rotate 7
+        compress
+        delaycompress
+        missingok
+        notifempty
+        create 644 firezone firezone
+        postrotate
+            systemctl reload firezone-gateway
+        endscript
+    }
+    EOF
+
+final_message: "Firezone Gateway installation completed successfully"

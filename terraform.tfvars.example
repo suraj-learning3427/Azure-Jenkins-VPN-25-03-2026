@@ -1,0 +1,31 @@
+# Azure Jenkins Infrastructure - Example Configuration
+# Copy this file to terraform.tfvars and customize the values
+
+# Basic Configuration
+name_prefix = "vijay-"
+location    = "East US"
+
+# Network Configuration
+hub_address_space   = "172.16.0.0/16"
+spoke_address_space = "192.168.0.0/16"
+
+# Features
+enable_bastion     = false
+enable_vpn_gateway = false
+enable_hub_peering = true
+
+# Jenkins Configuration
+jenkins_vm_size   = "Standard_D2s_v3"
+jenkins_static_ip = "192.168.129.50"
+jenkins_fqdn      = "jenkins.np.dglearn.online"
+
+# SSH Key - Replace with your actual public key
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ... your-public-key-here"
+
+# Tags
+tags = {
+  Environment = "demo"
+  Project     = "jenkins"
+  Owner       = "vijay"
+  ManagedBy   = "terraform"
+}
