@@ -20,6 +20,11 @@ output "network_interface" {
   }
 }
 
+output "firezone_nic" {
+  description = "Firezone gateway network interface resource"
+  value       = azurerm_network_interface.firezone_nic
+}
+
 output "public_ip" {
   description = "Firezone gateway public IP information"
   value = var.enable_public_ip ? {

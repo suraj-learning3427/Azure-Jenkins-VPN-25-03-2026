@@ -82,11 +82,11 @@ resource "azurerm_linux_virtual_machine" "jenkins_vm" {
     disk_size_gb         = var.os_disk_size_gb
   }
 
-  # Rocky Linux latest
+  # Ubuntu 22.04 LTS (Reliable and widely supported for Jenkins)
   source_image_reference {
-    publisher = "erockyenterprisesoftwarefoundationinc1653071250513"
-    offer     = "rockylinux"
-    sku       = "free"
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 

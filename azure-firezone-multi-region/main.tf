@@ -114,18 +114,16 @@ resource "azurerm_lb_rule" "firezone_health_rule" {
   idle_timeout_in_minutes        = 15
 }
 
-# Backend Address Pool Association - Primary
-resource "azurerm_lb_backend_address_pool_address" "firezone_primary_backend" {
-  name                    = "firezone-primary-backend"
+# Backend Address Pool Association - Primary (using NIC)
+resource "azurerm_network_interface_backend_address_pool_association" "firezone_primary_backend" {
+  network_interface_id    = module.firezone_primary.firezone_nic.id
+  ip_configuration_name   = "internal"
   backend_address_pool_id = azurerm_lb_backend_address_pool.firezone_backend_pool.id
-  virtual_network_id      = var.primary_vnet_id
-  ip_address              = module.firezone_primary.firezone_gateway.private_ip_address
 }
 
-# Backend Address Pool Association - Secondary
-resource "azurerm_lb_backend_address_pool_address" "firezone_secondary_backend" {
-  name                    = "firezone-secondary-backend"
+# Backend Address Pool Association - Secondary (using NIC)
+resource "azurerm_network_interface_backend_address_pool_association" "firezone_secondary_backend" {
+  network_interface_id    = module.firezone_secondary.firezone_nic.id
+  ip_configuration_name   = "internal"
   backend_address_pool_id = azurerm_lb_backend_address_pool.firezone_backend_pool.id
-  virtual_network_id      = var.secondary_vnet_id
-  ip_address              = module.firezone_secondary.firezone_gateway.private_ip_address
 }
