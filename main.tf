@@ -6,10 +6,10 @@ terraform {
 
   # Terraform Cloud remote backend — state stored here, plans/applies run here
   cloud {
-    organization = "your-tfc-org-name"   # ← replace with your TFC org name
+    organization = "terraform-learningmyway"
 
     workspaces {
-      name = "jenkins-azure"             # ← must match workspace name in TFC
+      name = "Azure-Jenkins-Terraform"
     }
   }
 
