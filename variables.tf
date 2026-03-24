@@ -115,7 +115,7 @@ variable "enable_firezone_multi_region" {
 
 variable "dns_zone_name" {
   type        = string
-  default     = "internal.company"
+  default     = "learningmyway.space"
   description = "Private DNS zone name for Jenkins internal resolution"
 }
 
@@ -123,6 +123,13 @@ variable "firezone_client_cidr" {
   type        = string
   default     = "100.64.0.0/10"
   description = "CIDR range assigned to Firezone VPN clients"
+}
+
+variable "pfx_password" {
+  type        = string
+  description = "Password for the Jenkins PFX certificate"
+  sensitive   = true
+  default     = "changeit"
 }
 
 variable "tags" {
