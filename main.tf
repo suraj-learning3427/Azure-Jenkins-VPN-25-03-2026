@@ -9,7 +9,7 @@ terraform {
     organization = "terraform-learningmyway"
 
     workspaces {
-      name = "Azure-Jenkins-Terraform"
+      name = "Azure-Jenkins-Terraform-updated-one"
     }
   }
 
