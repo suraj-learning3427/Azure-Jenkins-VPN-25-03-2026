@@ -119,7 +119,6 @@ resource "azurerm_virtual_machine_data_disk_attachment" "jenkins_data_disk_attac
 
 # HTTPS setup via VM extension — runs after Key Vault is ready
 resource "azurerm_virtual_machine_extension" "jenkins_https_setup" {
-  count                = var.kv_name != "" ? 1 : 0
   name                 = "jenkins-https-setup"
   virtual_machine_id   = azurerm_linux_virtual_machine.jenkins_vm.id
   publisher            = "Microsoft.Azure.Extensions"
