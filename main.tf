@@ -126,14 +126,17 @@ module "azure_firezone_multi_region" {
 }
 
 # Key Vault for Jenkins TLS Certificates
-# Note: Created before Jenkins VM so the KV name can be passed to the VM extension.
-# The Jenkins VM managed identity access policy is added after VM creation.
 module "certs_keyvault" {
   source = "./azure/certs-keyvault"
 
   resource_group_name              = module.azure_core_infrastructure.resource_group.name
   jenkins_vm_identity_principal_id = ""
   pfx_password                     = var.pfx_password
+  root_ca_cert_pem                 = var.root_ca_cert_pem
+  intermediate_ca_cert_pem         = var.intermediate_ca_cert_pem
+  jenkins_az_cert_pfx_b64          = var.jenkins_az_cert_pfx_b64
+  jenkins_az_key_pem               = var.jenkins_az_key_pem
+  jenkins_az_chain_pem             = var.jenkins_az_chain_pem
   tags                             = var.tags
 
   depends_on = [module.azure_core_infrastructure]

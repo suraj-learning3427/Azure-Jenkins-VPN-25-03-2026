@@ -9,9 +9,14 @@ on:
       - main
 
 jobs:
-  generate-certs:
-    name: Generate TLS Certificates
+  generate-certs-and-deploy:
+    name: Generate Certs + Terraform Plan/Apply
     runs-on: ubuntu-latest
+
+    env:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      TF_WORKSPACE_NAME: Azure-Jenkins-VPN-25-03-2026
+      TF_ORG: terraform-learningmyway
 
     steps:
       - name: Checkout code
@@ -24,52 +29,63 @@ jobs:
           PFX_PASS: ${{ secrets.PFX_PASS }}
         run: bash certs/generate-certs.sh
 
-      - name: Upload cert artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: tls-certs
-          path: |
-            certs/root-ca/root-ca.cert.pem
-            certs/intermediate-ca/intermediate-ca.cert.pem
-            certs/leaf/jenkins-az.cert.pem
-            certs/leaf/jenkins-az.chain.pem
-            certs/leaf/jenkins-az.key.pem
-            certs/leaf/jenkins-az.pfx
-            certs/ca-bundle.pem
-          retention-days: 1
-
-  terraform:
-    name: Terraform Plan / Apply
-    runs-on: ubuntu-latest
-    needs: generate-certs
-
-    env:
-      TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
-      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-      TF_WORKSPACE: Azure-Jenkins-Terraform-updated-one
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download cert artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: tls-certs
-          path: certs/
-
-      - name: Restore cert directory structure
+      - name: Push cert variables to Terraform Cloud
+        env:
+          ROOT_CA_PASS: ${{ secrets.ROOT_CA_PASS }}
+          INTERMEDIATE_CA_PASS: ${{ secrets.INTERMEDIATE_CA_PASS }}
+          PFX_PASS: ${{ secrets.PFX_PASS }}
         run: |
-          mkdir -p certs/root-ca certs/intermediate-ca certs/leaf
-          # artifacts are downloaded flat — move to correct subdirs
-          [ -f certs/root-ca.cert.pem ]          && mv certs/root-ca.cert.pem          certs/root-ca/root-ca.cert.pem
-          [ -f certs/intermediate-ca.cert.pem ]  && mv certs/intermediate-ca.cert.pem  certs/intermediate-ca/intermediate-ca.cert.pem
-          [ -f certs/jenkins-az.cert.pem ]       && mv certs/jenkins-az.cert.pem       certs/leaf/jenkins-az.cert.pem
-          [ -f certs/jenkins-az.chain.pem ]      && mv certs/jenkins-az.chain.pem      certs/leaf/jenkins-az.chain.pem
-          [ -f certs/jenkins-az.key.pem ]        && mv certs/jenkins-az.key.pem        certs/leaf/jenkins-az.key.pem
-          [ -f certs/jenkins-az.pfx ]            && mv certs/jenkins-az.pfx            certs/leaf/jenkins-az.pfx
-          echo "Cert files in place:"
-          find certs/ -name "*.pem" -o -name "*.pfx" | sort
+          # Get workspace ID
+          WS_ID=$(curl -sf \
+            -H "Authorization: Bearer $TF_API_TOKEN" \
+            -H "Content-Type: application/vnd.api+json" \
+            "https://app.terraform.io/api/v2/organizations/${TF_ORG}/workspaces/${TF_WORKSPACE_NAME}" \
+            | jq -r '.data.id')
+          echo "Workspace ID: $WS_ID"
+
+          # Helper to upsert a TFC variable
+          upsert_var() {
+            local key=$1
+            local value=$2
+            local sensitive=${3:-true}
+
+            # Check if variable exists
+            EXISTING=$(curl -sf \
+              -H "Authorization: Bearer $TF_API_TOKEN" \
+              "https://app.terraform.io/api/v2/workspaces/${WS_ID}/vars" \
+              | jq -r --arg k "$key" '.data[] | select(.attributes.key == $k) | .id')
+
+            PAYLOAD=$(jq -n \
+              --arg key "$key" \
+              --arg value "$value" \
+              --argjson sensitive "$sensitive" \
+              '{data:{type:"vars",attributes:{key:$key,value:$value,category:"terraform",sensitive:$sensitive,hcl:false}}}')
+
+            if [ -n "$EXISTING" ]; then
+              curl -sf -X PATCH \
+                -H "Authorization: Bearer $TF_API_TOKEN" \
+                -H "Content-Type: application/vnd.api+json" \
+                "https://app.terraform.io/api/v2/workspaces/${WS_ID}/vars/${EXISTING}" \
+                -d "$PAYLOAD" > /dev/null
+              echo "  Updated: $key"
+            else
+              curl -sf -X POST \
+                -H "Authorization: Bearer $TF_API_TOKEN" \
+                -H "Content-Type: application/vnd.api+json" \
+                "https://app.terraform.io/api/v2/workspaces/${WS_ID}/vars" \
+                -d "$PAYLOAD" > /dev/null
+              echo "  Created: $key"
+            fi
+          }
+
+          echo "Pushing cert variables to TFC..."
+          upsert_var "root_ca_cert_pem"         "$(cat certs/root-ca/root-ca.cert.pem)"
+          upsert_var "intermediate_ca_cert_pem" "$(cat certs/intermediate-ca/intermediate-ca.cert.pem)"
+          upsert_var "jenkins_az_key_pem"       "$(cat certs/leaf/jenkins-az.key.pem)"
+          upsert_var "jenkins_az_chain_pem"     "$(cat certs/leaf/jenkins-az.chain.pem)"
+          upsert_var "jenkins_az_cert_pfx_b64"  "$(base64 -w0 certs/leaf/jenkins-az.pfx)"
+          upsert_var "pfx_password"             "$PFX_PASS"
+          echo "All cert variables pushed."
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -84,5 +100,3 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -no-color
-        # Plan runs in TFC — output visible in TFC UI
-        # Apply requires manual approval in TFC UI

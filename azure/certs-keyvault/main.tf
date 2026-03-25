@@ -51,7 +51,7 @@ resource "azurerm_key_vault" "jenkins_kv" {
 # ─── ROOT CA CERT ─────────────────────────────────────────────────────────────
 resource "azurerm_key_vault_secret" "root_ca_cert" {
   name         = "root-ca-cert"
-  value        = file("${path.root}/../../certs/root-ca/root-ca.cert.pem")
+  value        = var.root_ca_cert_pem
   key_vault_id = azurerm_key_vault.jenkins_kv.id
   content_type = "application/x-pem-file"
   tags         = merge(var.tags, { cert-type = "root-ca" })
@@ -60,7 +60,7 @@ resource "azurerm_key_vault_secret" "root_ca_cert" {
 # ─── INTERMEDIATE CA CERT ─────────────────────────────────────────────────────
 resource "azurerm_key_vault_secret" "intermediate_ca_cert" {
   name         = "intermediate-ca-cert"
-  value        = file("${path.root}/../../certs/intermediate-ca/intermediate-ca.cert.pem")
+  value        = var.intermediate_ca_cert_pem
   key_vault_id = azurerm_key_vault.jenkins_kv.id
   content_type = "application/x-pem-file"
   tags         = merge(var.tags, { cert-type = "intermediate-ca" })
@@ -73,7 +73,7 @@ resource "azurerm_key_vault_certificate" "jenkins_az_cert" {
   tags         = merge(var.tags, { cert-type = "leaf" })
 
   certificate {
-    contents = filebase64("${path.root}/../../certs/leaf/jenkins-az.pfx")
+    contents = var.jenkins_az_cert_pfx_b64
     password = var.pfx_password
   }
 
@@ -96,7 +96,7 @@ resource "azurerm_key_vault_certificate" "jenkins_az_cert" {
 # ─── AZURE JENKINS PRIVATE KEY (PEM) ──────────────────────────────────────────
 resource "azurerm_key_vault_secret" "jenkins_az_key" {
   name         = "jenkins-az-key"
-  value        = file("${path.root}/../../certs/leaf/jenkins-az.key.pem")
+  value        = var.jenkins_az_key_pem
   key_vault_id = azurerm_key_vault.jenkins_kv.id
   content_type = "application/x-pem-file"
   tags         = merge(var.tags, { cert-type = "leaf-key" })
@@ -105,7 +105,7 @@ resource "azurerm_key_vault_secret" "jenkins_az_key" {
 # ─── AZURE JENKINS FULL CHAIN (PEM) ───────────────────────────────────────────
 resource "azurerm_key_vault_secret" "jenkins_az_chain" {
   name         = "jenkins-az-chain"
-  value        = file("${path.root}/../../certs/leaf/jenkins-az.chain.pem")
+  value        = var.jenkins_az_chain_pem
   key_vault_id = azurerm_key_vault.jenkins_kv.id
   content_type = "application/x-pem-file"
   tags         = merge(var.tags, { cert-type = "leaf-chain" })
