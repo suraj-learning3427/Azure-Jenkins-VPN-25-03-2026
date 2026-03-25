@@ -105,7 +105,7 @@ done
 
 echo ""
 echo "=== HTTPS Setup Complete ==="
-echo "  Jenkins URL: https://jenkins-az.internal.company:8443"
+echo "  Jenkins URL: https://jenkins-az.learningmyway.space:8443"
 echo "  Cert dir:    $CERT_DIR"
 echo ""
 echo "  Distribute root CA to VPN clients:"

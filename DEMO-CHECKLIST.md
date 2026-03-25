@@ -31,8 +31,8 @@ terraform apply -auto-approve
 - [ ] Jenkins VM: `jenkins-server` — private IP only, no public IP
 - [ ] Firezone VMs: `azure-jenkins-primary-firezone-gateway` + secondary
 - [ ] Load Balancers: primary (East US) + secondary (West US)
-- [ ] Private DNS zone: `internal.company` (or `learningmyway.space`)
-- [ ] DNS A record: `jenkins-az.internal.company` → Jenkins private IP
+- [ ] Private DNS zone: `learningmyway.space`
+- [ ] DNS A record: `jenkins-az.learningmyway.space` → Jenkins private IP
 - [ ] Traffic Manager profile: `azure-jenkins-firezone-tm`
 
 ### Get Jenkins private IP:
@@ -59,8 +59,8 @@ terraform apply -auto-approve
 - [ ] Firezone VM: `jenkins-firezone-gateway` — has public IP
 - [ ] Jenkins VM: `jenkins-jenkins-server` — NO public IP
 - [ ] Cloud NAT: `jenkins-nat` (for Jenkins outbound)
-- [ ] Cloud DNS zone: `jenkins-internal-dns` (private, internal.company)
-- [ ] DNS A record: `jenkins-gcp.internal.company` → Jenkins private IP
+- [ ] Cloud DNS zone: `jenkins-internal-dns` (private, learningmyway.space)
+- [ ] DNS A record: `jenkins-gcp.learningmyway.space` → Jenkins private IP
 
 ### Get GCP outputs:
 ```bash
@@ -81,8 +81,8 @@ terraform output jenkins_dns
    - [ ] GCP gateway (us-central1) — Online
 
 ### In Firezone, configure Resources:
-- [ ] Add resource: `jenkins-az.internal.company` → CIDR `192.168.0.0/24`
-- [ ] Add resource: `jenkins-gcp.internal.company` → CIDR `10.10.0.0/24`
+- [ ] Add resource: `jenkins-az.learningmyway.space` → CIDR `192.168.0.0/24`
+- [ ] Add resource: `jenkins-gcp.learningmyway.space` → CIDR `10.10.0.0/24`
 - [ ] Assign resources to your user/group policy
 
 ---
@@ -111,23 +111,23 @@ terraform apply -auto-approve
 2. Connect to your Firezone site
 3. Test DNS resolution:
 ```bash
-nslookup jenkins-az.internal.company
-nslookup jenkins-gcp.internal.company
+nslookup jenkins-az.learningmyway.space
+nslookup jenkins-gcp.learningmyway.space
 ```
-- [ ] `jenkins-az.internal.company` resolves to Azure Jenkins private IP
-- [ ] `jenkins-gcp.internal.company` resolves to GCP Jenkins private IP
+- [ ] `jenkins-az.learningmyway.space` resolves to Azure Jenkins private IP
+- [ ] `jenkins-gcp.learningmyway.space` resolves to GCP Jenkins private IP
 
 4. Test Jenkins reachability:
 ```bash
-curl -I http://jenkins-az.internal.company:8080
-curl -I http://jenkins-gcp.internal.company:8080
+curl -I http://jenkins-az.learningmyway.space:8080
+curl -I http://jenkins-gcp.learningmyway.space:8080
 ```
 - [ ] Azure Jenkins returns HTTP 200 or 403 (login page)
 - [ ] GCP Jenkins returns HTTP 200 or 403 (login page)
 
 5. Test VPN-only enforcement (disconnect VPN):
 ```bash
-curl --connect-timeout 5 http://jenkins-az.internal.company:8080
+curl --connect-timeout 5 http://jenkins-az.learningmyway.space:8080
 # Should FAIL / timeout — Jenkins not reachable without VPN
 ```
 - [ ] Jenkins NOT reachable without VPN ✅
@@ -139,11 +139,11 @@ curl --connect-timeout 5 http://jenkins-az.internal.company:8080
 ### Azure Jenkins:
 ```bash
 # SSH via Firezone (VPN must be connected)
-ssh azureuser@jenkins-az.internal.company
+ssh azureuser@jenkins-az.learningmyway.space
 sudo cat /jenkins/jenkins_home/secrets/initialAdminPassword
 ```
 - [ ] Get initial admin password
-- [ ] Open http://jenkins-az.internal.company:8080 in browser
+- [ ] Open http://jenkins-az.learningmyway.space:8080 in browser
 - [ ] Complete Jenkins setup wizard
 - [ ] Install suggested plugins
 
@@ -154,7 +154,7 @@ gcloud compute ssh jenkins-jenkins-server --zone=us-central1-a --tunnel-through-
 sudo cat /jenkins/jenkins_home/secrets/initialAdminPassword
 ```
 - [ ] Get initial admin password
-- [ ] Open http://jenkins-gcp.internal.company:8080 in browser
+- [ ] Open http://jenkins-gcp.learningmyway.space:8080 in browser
 - [ ] Complete Jenkins setup wizard
 - [ ] Install suggested plugins
 
@@ -165,7 +165,7 @@ sudo cat /jenkins/jenkins_home/secrets/initialAdminPassword
 ### Step 1 — Register app in Entra ID (Azure Portal):
 1. Azure Portal → Entra ID → App Registrations → New Registration
    - Name: `Jenkins SSO`
-   - Redirect URI: `http://jenkins-az.internal.company:8080/securityRealm/finishLogin`
+   - Redirect URI: `http://jenkins-az.learningmyway.space:8080/securityRealm/finishLogin`
 2. Under "Expose an API" → add scope
 3. Under "Token configuration" → add groups claim
 4. Note down: **Application (client) ID**, **Directory (tenant) ID**
@@ -233,8 +233,8 @@ git add . && git commit -m "test: trigger TF Cloud plan" && git push
 4. **GCP Console** → show Jenkins VM (no public IP), Firezone gateway
 5. **Firezone UI** → show all 3 gateways Online
 6. **Connect VPN** → connect Firezone client on laptop
-7. **Browser** → open `http://jenkins-az.internal.company:8080` → Jenkins login
-8. **Browser** → open `http://jenkins-gcp.internal.company:8080` → Jenkins login
+7. **Browser** → open `http://jenkins-az.learningmyway.space:8080` → Jenkins login
+8. **Browser** → open `http://jenkins-gcp.learningmyway.space:8080` → Jenkins login
 9. **SSO demo** → click login → redirected to Microsoft → log in → back to Jenkins
 10. **Disconnect VPN** → show Jenkins is NOT reachable
 11. **Architecture diagram** → open `architecture-diagram.html` in browser

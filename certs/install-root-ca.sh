@@ -59,4 +59,4 @@ esac
 
 echo ""
 echo "After installing, Jenkins HTTPS will be trusted at:"
-echo "  https://jenkins-az.internal.company:8443"
+echo "  https://jenkins-az.learningmyway.space:8443"

@@ -91,7 +91,7 @@ variable "secondary_jenkins_subnet_cidr" {
 
 variable "jenkins_fqdn" {
   type        = string
-  default     = "jenkins.learningmyway.space"
+  default     = "jenkins-az.learningmyway.space"
   description = "FQDN for Jenkins"
 }
 

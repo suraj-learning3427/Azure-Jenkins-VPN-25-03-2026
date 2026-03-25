@@ -41,7 +41,7 @@ variable "jenkins_port" {
 
 variable "jenkins_fqdn" {
   type        = string
-  default     = "jenkins.learningmyway.space"
+  default     = "jenkins-az.learningmyway.space"
   description = "FQDN for Jenkins (used in SSL certificate)"
 }
 

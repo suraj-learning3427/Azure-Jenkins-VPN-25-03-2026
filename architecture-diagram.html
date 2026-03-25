@@ -200,9 +200,9 @@ function drawInfra() {
   svg.appendChild(el('rect',{x:40,y:320,width:240,height:200,rx:8,fill:'#a78bfa08',stroke:'#a78bfa','stroke-width':.8,'stroke-dasharray':'4,3'}));
   svg.appendChild(txt(160,338,'subnet-jenkins · 192.168.0.0/24','#a78bfa',9,'600'));
   svg.appendChild(card(55,355,210,70,'gJenkins','#a78bfa','⚙','Jenkins VM (Primary)','Standard_D2s_v3 · NO Public IP',
-    'Azure Jenkins VM',['• No public IP — VPN only','• Port 8080 (Jenkins UI)','• SAML SSO via Entra ID','• Private subnet only','• DNS: jenkins-az.internal.company'],true));
-  svg.appendChild(card(55,440,210,50,'gJenkins','#c4b5fd','🌐','Private DNS','jenkins-az.internal.company',
-    'Azure Private DNS',['• Zone: internal.company','• A record → Jenkins private IP','• Linked to VNet']));
+    'Azure Jenkins VM',['• No public IP — VPN only','• Port 8080 (Jenkins UI)','• SAML SSO via Entra ID','• Private subnet only','• DNS: jenkins-az.learningmyway.space'],true));
+  svg.appendChild(card(55,440,210,50,'gJenkins','#c4b5fd','🌐','Private DNS','jenkins-az.learningmyway.space',
+    'Azure Private DNS',['• Zone: learningmyway.space','• A record → Jenkins private IP','• Linked to VNet']));
   svg.appendChild(card(55,505,210,50,'gDev','#64748b','🔑','Key Vault','azure-jenkins-kv',
     'Azure Key Vault',['• TLS certificates','• SSH keys','• Secrets management']));
 
@@ -360,7 +360,7 @@ function drawSSO() {
 
   // Jenkins SAML flow
   svg.appendChild(cloudBox(850,260,320,200,'#f59e0b','⚙  JENKINS  (SAML 2.0)'));
-  svg.appendChild(card(870,295,280,55,'gJenkins','#f59e0b','⚙','Jenkins (Primary)','jenkins-az.internal.company:8080',
+  svg.appendChild(card(870,295,280,55,'gJenkins','#f59e0b','⚙','Jenkins (Primary)','jenkins-az.learningmyway.space:8080',
     'Jenkins Primary',['• SAML plugin installed','• SP Entity ID configured','• ACS URL: /securityRealm/finishLogin','• Attribute mapping: email, groups']));
   svg.appendChild(card(870,365,280,55,'gJenkins','#f59e0b','⚙','Jenkins (Secondary)','jenkins-az-secondary:8080',
     'Jenkins Secondary',['• Same SAML config','• West US region','• Failover via Traffic Manager']));
@@ -371,7 +371,7 @@ function drawSSO() {
   svg.appendChild(txt(600,540,'2. Browser opens → Entra ID login page','#61dafb',10,'400'));
   svg.appendChild(txt(600,560,'3. User enters credentials + MFA','#61dafb',10,'400'));
   svg.appendChild(txt(600,580,'4. OIDC token issued → WireGuard tunnel up','#34d399',10,'600'));
-  svg.appendChild(txt(600,600,'5. User browses jenkins-az.internal.company','#f59e0b',10,'400'));
+  svg.appendChild(txt(600,600,'5. User browses jenkins-az.learningmyway.space','#f59e0b',10,'400'));
   svg.appendChild(txt(600,620,'6. Jenkins redirects → Entra ID SAML login','#f59e0b',10,'400'));
   svg.appendChild(txt(600,640,'7. Already logged in → SAML assertion returned','#a78bfa',10,'400'));
   svg.appendChild(txt(600,660,'8. Jenkins grants access based on group claims','#34d399',10,'600'));
@@ -404,7 +404,7 @@ function drawVPN() {
   svg.appendChild(card(50,135,160,55,'gFZ','#34d399','🔒','Firezone Client','v1.x WireGuard',
     'Firezone Client',['• Authenticates via Entra ID OIDC','• Gets peer config from control plane','• Establishes WireGuard tunnel','• Split tunnel: Azure CIDRs only']));
   svg.appendChild(card(50,205,160,55,'gDev','#64748b','🌐','Browser','Chrome / Edge / Firefox',
-    'Browser',['• Accesses jenkins-az.internal.company','• SAML redirect to Entra ID','• No direct internet to Jenkins']));
+    'Browser',['• Accesses jenkins-az.learningmyway.space','• SAML redirect to Entra ID','• No direct internet to Jenkins']));
 
   // Firezone control plane
   svg.appendChild(cloudBox(290,30,200,130,'#f59e0b','☁  FIREZONE CLOUD'));
@@ -418,9 +418,9 @@ function drawVPN() {
   svg.appendChild(card(580,65,240,60,'gFZ','#3b82f6','🔒','Firezone Gateway (Primary)','20.x.x.x:51820/UDP',
     'Primary Firezone Gateway',['• Public IP exposed on :51820','• WireGuard peer endpoint','• Routes traffic to private subnet','• NSG: only 51820/UDP inbound']));
   svg.appendChild(card(580,145,240,55,'gJenkins','#a78bfa','⚙','Jenkins VM (Primary)','192.168.0.x · Port 8080',
-    'Jenkins Primary',['• Private IP only','• No public IP','• Reachable only via VPN tunnel','• jenkins-az.internal.company']));
+    'Jenkins Primary',['• Private IP only','• No public IP','• Reachable only via VPN tunnel','• jenkins-az.learningmyway.space']));
   svg.appendChild(card(580,215,240,55,'gDev','#64748b','🌐','Private DNS','192.168.0.x → jenkins-az.*',
-    'Private DNS Resolution',['• DNS query: jenkins-az.internal.company','• Resolves to private IP 192.168.0.x','• Only works inside VNet or via VPN']));
+    'Private DNS Resolution',['• DNS query: jenkins-az.learningmyway.space','• Resolves to private IP 192.168.0.x','• Only works inside VNet or via VPN']));
   svg.appendChild(card(580,285,240,55,'gDev','#f87171','🚫','Public Internet','Port 8080 BLOCKED',
     'Security: No Public Access',['• NSG rule blocks 8080 from internet','• Jenkins has no public IP','• Only Firezone VPN clients can reach it']));
 
@@ -444,7 +444,7 @@ function drawVPN() {
 
   // DNS note
   svg.appendChild(cloudBox(290,390,260,120,'#a78bfa','🔍  DNS RESOLUTION'));
-  svg.appendChild(txt(420,420,'jenkins-az.internal.company','#a78bfa',10,'700'));
+  svg.appendChild(txt(420,420,'jenkins-az.learningmyway.space','#a78bfa',10,'700'));
   svg.appendChild(txt(420,438,'→ Resolves via Azure Private DNS','#94a3b8',9,'400'));
   svg.appendChild(txt(420,454,'→ Returns private IP 192.168.0.x','#94a3b8',9,'400'));
   svg.appendChild(txt(420,470,'→ Traffic routed via WireGuard','#34d399',9,'400'));

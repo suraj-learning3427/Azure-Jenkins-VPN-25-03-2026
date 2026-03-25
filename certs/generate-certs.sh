@@ -11,7 +11,7 @@
 
 set -e
 
-DOMAIN="internal.company"
+DOMAIN="learningmyway.space"
 AZURE_JENKINS_DNS="jenkins-az.${DOMAIN}"
 CERTS_DIR="$(cd "$(dirname "$0")" && pwd)"
 

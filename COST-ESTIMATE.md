@@ -69,7 +69,7 @@
 | Static External IP (Firezone GW) | us-central1 | $0.004 | $0.096 | $2.92 |
 | Cloud NAT (Jenkins egress) | Per VM + data | $0.0014 | $0.034 | $1.03 |
 | VPC Firewall Rules | No charge | $0.00 | $0.00 | $0.00 |
-| Cloud DNS Private Zone | internal.company | $0.0001 | $0.002 | $0.06 |
+| Cloud DNS Private Zone | learningmyway.space | $0.0001 | $0.002 | $0.06 |
 | Outbound Bandwidth (est. 10GB/mo) | First 1GB free | $0.0001 | $0.003 | $0.09 |
 
 ### Other GCP Services

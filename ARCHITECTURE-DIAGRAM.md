@@ -64,7 +64,7 @@
 │  │  ┌────────────────────┐  │                                                     │
 │  │  │  Private DNS       │  │                                                     │
 │  │  │  jenkins-az.       │  │                                                     │
-│  │  │  internal.company  │  │                                                     │
+│  │  │  learningmyway.space  │  │                                                     │
 │  │  └────────────────────┘  │                                                     │
 │  └──────────────────────────┘                                                     │
 └─────────────────────────────────────────────────────────────────────────────────────┘
@@ -111,7 +111,7 @@
 │  3. WireGuard tunnel established (split tunnel — internet still works)            │
 │         │                                                                         │
 │         ▼                                                                         │
-│  4. Browse jenkins-az.internal.company:8080                                       │
+│  4. Browse jenkins-az.learningmyway.space:8080                                       │
 │         │                                                                         │
 │         ▼                                                                         │
 │  5. Jenkins redirects to Entra ID SAML login                                     │
@@ -119,7 +119,7 @@
 │         ▼                                                                         │
 │  6. Already logged in → SAML assertion returned → Jenkins access granted         │
 │                                                                                   │
-│  ✗ Without VPN: jenkins-az.internal.company → NOT reachable                     │
+│  ✗ Without VPN: jenkins-az.learningmyway.space → NOT reachable                     │
 │  ✓ Split tunnel: internet works normally while VPN is connected                  │
 │                                                                                   │
 └──────────────────────────────────────────────────────────────────────────────────┘
@@ -143,7 +143,7 @@
 | VPN               | Firezone (WireGuard)          | Lightweight, split tunnel, OIDC SSO         |
 | Jenkins SSO       | SAML plugin                   | Supported by Entra ID natively              |
 | State backend     | Terraform Cloud               | No local tfstate, team collaboration        |
-| DNS               | Azure Private DNS             | jenkins-az.internal.company                 |
+| DNS               | Azure Private DNS             | jenkins-az.learningmyway.space                 |
 | Jenkins access    | VPN-only (no public IP)       | Security requirement                        |
 | Multi-region      | East US (primary) + West US   | High availability via Traffic Manager       |
 | Split tunnel      | Azure CIDRs only via VPN      | Internet not disrupted when VPN connected   |

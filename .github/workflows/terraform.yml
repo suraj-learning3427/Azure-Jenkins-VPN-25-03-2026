@@ -9,18 +9,67 @@ on:
       - main
 
 jobs:
-  terraform:
-    name: Terraform Plan / Apply
+  generate-certs:
+    name: Generate TLS Certificates
     runs-on: ubuntu-latest
-
-    env:
-      TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
-      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-      TF_WORKSPACE: Azure-Jenkins-Terraform
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Generate certificates
+        env:
+          ROOT_CA_PASS: ${{ secrets.ROOT_CA_PASS }}
+          INTERMEDIATE_CA_PASS: ${{ secrets.INTERMEDIATE_CA_PASS }}
+          PFX_PASS: ${{ secrets.PFX_PASS }}
+        run: bash certs/generate-certs.sh
+
+      - name: Upload cert artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tls-certs
+          path: |
+            certs/root-ca/root-ca.cert.pem
+            certs/intermediate-ca/intermediate-ca.cert.pem
+            certs/leaf/jenkins-az.cert.pem
+            certs/leaf/jenkins-az.chain.pem
+            certs/leaf/jenkins-az.key.pem
+            certs/leaf/jenkins-az.pfx
+            certs/ca-bundle.pem
+          retention-days: 1
+
+  terraform:
+    name: Terraform Plan / Apply
+    runs-on: ubuntu-latest
+    needs: generate-certs
+
+    env:
+      TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      TF_WORKSPACE: Azure-Jenkins-Terraform-updated-one
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download cert artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: tls-certs
+          path: certs/
+
+      - name: Restore cert directory structure
+        run: |
+          mkdir -p certs/root-ca certs/intermediate-ca certs/leaf
+          # artifacts are downloaded flat — move to correct subdirs
+          [ -f certs/root-ca.cert.pem ]          && mv certs/root-ca.cert.pem          certs/root-ca/root-ca.cert.pem
+          [ -f certs/intermediate-ca.cert.pem ]  && mv certs/intermediate-ca.cert.pem  certs/intermediate-ca/intermediate-ca.cert.pem
+          [ -f certs/jenkins-az.cert.pem ]       && mv certs/jenkins-az.cert.pem       certs/leaf/jenkins-az.cert.pem
+          [ -f certs/jenkins-az.chain.pem ]      && mv certs/jenkins-az.chain.pem      certs/leaf/jenkins-az.chain.pem
+          [ -f certs/jenkins-az.key.pem ]        && mv certs/jenkins-az.key.pem        certs/leaf/jenkins-az.key.pem
+          [ -f certs/jenkins-az.pfx ]            && mv certs/jenkins-az.pfx            certs/leaf/jenkins-az.pfx
+          echo "Cert files in place:"
+          find certs/ -name "*.pem" -o -name "*.pfx" | sort
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3

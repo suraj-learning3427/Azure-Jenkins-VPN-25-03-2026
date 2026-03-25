@@ -27,7 +27,7 @@ enable_hub_peering           = true
 enable_firezone_multi_region = true
 
 jenkins_vm_size      = "Standard_D2s_v3"
-dns_zone_name        = "internal.company"
+dns_zone_name        = "learningmyway.space"
 firezone_client_cidr = "100.64.0.0/10"
 
 # ── Sensitive variables (mark sensitive = true in TFC) ────────────────────────
