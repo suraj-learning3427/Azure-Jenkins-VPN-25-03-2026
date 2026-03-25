@@ -9,7 +9,7 @@ terraform {
     organization = "terraform-learningmyway"
 
     workspaces {
-      name = "Azure-Jenkins-Terraform-updated-one"
+      name = "Azure-Jenkins-VPN-25-03-2026"
     }
   }
 
