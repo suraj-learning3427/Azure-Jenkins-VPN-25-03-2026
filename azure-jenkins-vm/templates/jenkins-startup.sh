@@ -10,6 +10,7 @@ echo "Timestamp: $(date)"
 DISK_DEVICE="${data_disk_device}"
 MOUNT_POINT="${mount_point}"
 JENKINS_PORT="${jenkins_port}"
+KV_NAME="${kv_name}"
 JENKINS_VERSION="2.479.3"
 
 # Wait for data disk
@@ -96,3 +97,85 @@ fi
 echo "Jenkins setup complete!"
 echo "URL: http://localhost:$JENKINS_PORT"
 echo "Timestamp: $(date)"
+
+# ─── HTTPS SETUP VIA KEY VAULT ────────────────────────────────────────────────
+if [ -n "$KV_NAME" ]; then
+  echo "=== Setting up Jenkins HTTPS via Key Vault: $KV_NAME ==="
+  CERT_DIR="/etc/jenkins/certs"
+  mkdir -p "$CERT_DIR"
+
+  # Wait for managed identity token (retry up to 10 min)
+  echo "Waiting for managed identity token..."
+  TOKEN=""
+  for i in $(seq 1 60); do
+    TOKEN=$(curl -sf \
+      -H "Metadata:true" \
+      "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://vault.azure.net" \
+      2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])" 2>/dev/null || true)
+    if [ -n "$TOKEN" ]; then
+      echo "  Got managed identity token"
+      break
+    fi
+    echo "  Waiting for token... ($i/60)"
+    sleep 10
+  done
+
+  if [ -z "$TOKEN" ]; then
+    echo "WARNING: Could not get managed identity token — skipping HTTPS setup"
+  else
+    # Fetch secret from Key Vault with retry
+    fetch_kv_secret() {
+      local secret_name=$1
+      local outfile=$2
+      for attempt in $(seq 1 20); do
+        RESULT=$(curl -sf \
+          -H "Authorization: Bearer $TOKEN" \
+          "https://$${KV_NAME}.vault.azure.net/secrets/$${secret_name}?api-version=7.3" \
+          2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])" 2>/dev/null || true)
+        if [ -n "$RESULT" ]; then
+          echo "$RESULT" > "$outfile"
+          echo "  ✅ Fetched: $secret_name"
+          return 0
+        fi
+        echo "  Waiting for $secret_name in Key Vault... ($attempt/20)"
+        sleep 30
+      done
+      echo "  WARNING: Could not fetch $secret_name after retries"
+      return 1
+    }
+
+    fetch_kv_secret "jenkins-az-chain" "$CERT_DIR/jenkins.chain.pem" && \
+    fetch_kv_secret "jenkins-az-key"   "$CERT_DIR/jenkins.key.pem"  && \
+    fetch_kv_secret "root-ca-cert"     "$CERT_DIR/root-ca.pem"      && {
+      chmod 600 "$CERT_DIR/jenkins.key.pem"
+      chmod 644 "$CERT_DIR/jenkins.chain.pem" "$CERT_DIR/root-ca.pem"
+
+      # Build PKCS12 keystore
+      openssl pkcs12 -export \
+        -in    "$CERT_DIR/jenkins.chain.pem" \
+        -inkey "$CERT_DIR/jenkins.key.pem" \
+        -out   "$CERT_DIR/jenkins.p12" \
+        -passout pass:changeit \
+        -name jenkins
+      chmod 600 "$CERT_DIR/jenkins.p12"
+
+      # Install Root CA
+      cp "$CERT_DIR/root-ca.pem" /usr/local/share/ca-certificates/myorg-root-ca.crt
+      update-ca-certificates
+
+      # Configure Jenkins HTTPS
+      mkdir -p /etc/systemd/system/jenkins.service.d
+      cat > /etc/systemd/system/jenkins.service.d/https.conf <<EOF
+[Service]
+Environment="JENKINS_HTTPS_PORT=8443"
+Environment="JENKINS_HTTPS_KEYSTORE=$CERT_DIR/jenkins.p12"
+Environment="JENKINS_HTTPS_KEYSTORE_PASSWORD=changeit"
+Environment="JENKINS_PORT=-1"
+EOF
+      systemctl daemon-reload
+      systemctl restart jenkins
+      echo "✅ Jenkins HTTPS configured on port 8443"
+      echo "URL: https://jenkins-az.learningmyway.space:8443"
+    }
+  fi
+fi
