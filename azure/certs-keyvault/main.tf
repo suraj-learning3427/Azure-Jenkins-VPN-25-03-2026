@@ -50,6 +50,7 @@ resource "azurerm_key_vault" "jenkins_kv" {
 
 # ─── ROOT CA CERT ─────────────────────────────────────────────────────────────
 resource "azurerm_key_vault_secret" "root_ca_cert" {
+  count        = var.root_ca_cert_pem != "" ? 1 : 0
   name         = "root-ca-cert"
   value        = var.root_ca_cert_pem
   key_vault_id = azurerm_key_vault.jenkins_kv.id
@@ -59,6 +60,7 @@ resource "azurerm_key_vault_secret" "root_ca_cert" {
 
 # ─── INTERMEDIATE CA CERT ─────────────────────────────────────────────────────
 resource "azurerm_key_vault_secret" "intermediate_ca_cert" {
+  count        = var.intermediate_ca_cert_pem != "" ? 1 : 0
   name         = "intermediate-ca-cert"
   value        = var.intermediate_ca_cert_pem
   key_vault_id = azurerm_key_vault.jenkins_kv.id
@@ -68,6 +70,7 @@ resource "azurerm_key_vault_secret" "intermediate_ca_cert" {
 
 # ─── AZURE JENKINS LEAF CERT (PFX) ────────────────────────────────────────────
 resource "azurerm_key_vault_certificate" "jenkins_az_cert" {
+  count        = var.jenkins_az_cert_pfx_b64 != "" ? 1 : 0
   name         = "jenkins-az-cert"
   key_vault_id = azurerm_key_vault.jenkins_kv.id
   tags         = merge(var.tags, { cert-type = "leaf" })
@@ -95,6 +98,7 @@ resource "azurerm_key_vault_certificate" "jenkins_az_cert" {
 
 # ─── AZURE JENKINS PRIVATE KEY (PEM) ──────────────────────────────────────────
 resource "azurerm_key_vault_secret" "jenkins_az_key" {
+  count        = var.jenkins_az_key_pem != "" ? 1 : 0
   name         = "jenkins-az-key"
   value        = var.jenkins_az_key_pem
   key_vault_id = azurerm_key_vault.jenkins_kv.id
@@ -104,6 +108,7 @@ resource "azurerm_key_vault_secret" "jenkins_az_key" {
 
 # ─── AZURE JENKINS FULL CHAIN (PEM) ───────────────────────────────────────────
 resource "azurerm_key_vault_secret" "jenkins_az_chain" {
+  count        = var.jenkins_az_chain_pem != "" ? 1 : 0
   name         = "jenkins-az-chain"
   value        = var.jenkins_az_chain_pem
   key_vault_id = azurerm_key_vault.jenkins_kv.id
