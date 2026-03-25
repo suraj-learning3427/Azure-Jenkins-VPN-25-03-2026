@@ -28,7 +28,7 @@ fetch_secret() {
   echo "  Fetching $name..."
   curl -sf \
     -H "Authorization: Bearer $TOKEN" \
-    "https://${KV_NAME}.vault.azure.net/secrets/${name}?api-version=7.3" \
+    "https://$${KV_NAME}.vault.azure.net/secrets/$${name}?api-version=7.3" \
     | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])" > "$outfile"
 }
 
@@ -57,7 +57,7 @@ mkdir -p /etc/systemd/system/jenkins.service.d
 cat > /etc/systemd/system/jenkins.service.d/https.conf <<EOF
 [Service]
 Environment="JENKINS_HTTPS_PORT=8443"
-Environment="JENKINS_HTTPS_KEYSTORE=${CERT_DIR}/jenkins.p12"
+Environment="JENKINS_HTTPS_KEYSTORE=$${CERT_DIR}/jenkins.p12"
 Environment="JENKINS_HTTPS_KEYSTORE_PASSWORD=changeit"
 Environment="JENKINS_PORT=-1"
 EOF

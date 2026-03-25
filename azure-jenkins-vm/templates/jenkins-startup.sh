@@ -47,11 +47,11 @@ apt-get install -y wget curl fontconfig openjdk-17-jre
 
 # Install Jenkins via direct .deb download (avoids GPG repo issues)
 echo "Downloading Jenkins $JENKINS_VERSION .deb package..."
-wget -q -O /tmp/jenkins.deb "https://get.jenkins.io/debian-stable/jenkins_${JENKINS_VERSION}_all.deb"
+wget -q -O /tmp/jenkins.deb "https://get.jenkins.io/debian-stable/jenkins_$${JENKINS_VERSION}_all.deb"
 
 if [ $? -ne 0 ]; then
     echo "Primary download failed, trying mirror..."
-    wget -q -O /tmp/jenkins.deb "https://mirrors.jenkins.io/debian-stable/jenkins_${JENKINS_VERSION}_all.deb"
+    wget -q -O /tmp/jenkins.deb "https://mirrors.jenkins.io/debian-stable/jenkins_$${JENKINS_VERSION}_all.deb"
 fi
 
 echo "Installing Jenkins from .deb..."
