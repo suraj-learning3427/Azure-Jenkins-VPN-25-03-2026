@@ -29,10 +29,10 @@ variable "vpn_subnet_cidr" {
   description = "CIDR block for VPN subnet for Firezone gateway in secondary region"
 }
 
-variable "jenkins_port" {
+variable "firezone_client_cidr" {
   type        = string
-  default     = "8080"
-  description = "Port for Jenkins web interface"
+  default     = "100.64.0.0/10"
+  description = "CIDR range assigned to Firezone VPN clients"
 }
 
 variable "enable_primary_peering" {

@@ -89,7 +89,6 @@ jobs:
           upsert_var "jenkins_az_cert_pfx_b64"  "$(base64 -w0 certs/leaf/jenkins-az.pfx)"
           upsert_var "pfx_password"             "$PFX_PASS"
           echo "All cert variables pushed."
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -103,3 +102,7 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -no-color
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -no-color

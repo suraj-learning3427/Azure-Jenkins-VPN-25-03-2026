@@ -88,6 +88,7 @@ module "azure_core_infrastructure_secondary" {
   spoke_address_space         = var.secondary_spoke_address_space
   jenkins_subnet_cidr         = var.secondary_jenkins_subnet_cidr
   vpn_subnet_cidr             = var.secondary_vpn_subnet_cidr
+  firezone_client_cidr        = var.firezone_client_cidr
   enable_primary_peering      = true
   primary_vnet_id             = module.azure_core_infrastructure.spoke_virtual_network.id
   primary_resource_group_name = module.azure_core_infrastructure.resource_group.name

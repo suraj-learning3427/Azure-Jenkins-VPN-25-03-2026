@@ -24,8 +24,15 @@ for i in $(seq 1 30); do
 done
 
 if [ ! -e "$DISK_DEVICE" ]; then
-    echo "WARNING: Data disk not found at $DISK_DEVICE, trying /dev/sdc"
-    DISK_DEVICE="/dev/sdc"
+    echo "WARNING: Data disk not found at $DISK_DEVICE, auto-detecting..."
+    # Find the first unpartitioned disk that is not the OS disk (sda)
+    DISK_DEVICE=$(lsblk -nd -o NAME,TYPE | awk '$2=="disk" && $1!="sda" {print "/dev/"$1}' | head -1)
+    if [ -z "$DISK_DEVICE" ]; then
+        echo "ERROR: Could not find a data disk. Falling back to /dev/sdc"
+        DISK_DEVICE="/dev/sdc"
+    else
+        echo "Auto-detected data disk: $DISK_DEVICE"
+    fi
 fi
 
 # Format and mount data disk
@@ -121,7 +128,7 @@ if [ -n "$KV_NAME" ]; then
   done
 
   if [ -z "$TOKEN" ]; then
-    echo "WARNING: Could not get managed identity token — skipping HTTPS setup"
+    echo "WARNING: Could not get managed identity token after 10 minutes — skipping HTTPS setup"
   else
     # Fetch secret from Key Vault with retry
     fetch_kv_secret() {

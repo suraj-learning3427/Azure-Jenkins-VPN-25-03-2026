@@ -73,7 +73,6 @@ pipeline {
                     terraform plan \
                         -input=false \
                         -out=tfplan \
-                        -var="firezone_token=${FIREZONE_TOKEN:-placeholder}" \
                         2>&1 | tee plan.txt
                 '''
                 // Archive the plan output so it's visible in the build artefacts

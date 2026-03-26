@@ -187,6 +187,45 @@ resource "azurerm_network_security_group" "vpn_nsg" {
     source_address_prefix      = var.firezone_client_cidr
     destination_address_prefix = "*"
   }
+
+  # Outbound: allow Firezone gateway to reach control plane (app.firezone.dev:443)
+  security_rule {
+    name                       = "AllowOutboundHTTPS"
+    priority                   = 1000
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "Internet"
+  }
+
+  # Outbound: allow Firezone relay STUN/TURN (UDP 3478 and 49152-65535)
+  security_rule {
+    name                       = "AllowOutboundSTUN"
+    priority                   = 1010
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "3478"
+    source_address_prefix      = "*"
+    destination_address_prefix = "Internet"
+  }
+
+  # Outbound: allow WireGuard relay traffic
+  security_rule {
+    name                       = "AllowOutboundWireGuard"
+    priority                   = 1020
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "51820"
+    source_address_prefix      = "*"
+    destination_address_prefix = "Internet"
+  }
 }
 
 resource "azurerm_subnet_network_security_group_association" "vpn_subnet_nsg" {
