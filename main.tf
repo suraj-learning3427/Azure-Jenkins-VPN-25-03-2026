@@ -118,6 +118,8 @@ module "azure_firezone_multi_region" {
   ssh_public_key                = var.ssh_public_key
   firezone_id                   = var.firezone_id
   firezone_token                = var.firezone_token
+  firezone_id_secondary         = var.firezone_id_secondary
+  firezone_token_secondary      = var.firezone_token_secondary
   tags                          = var.tags
 
   depends_on = [

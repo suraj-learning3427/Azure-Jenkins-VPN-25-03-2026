@@ -97,13 +97,25 @@ variable "jenkins_fqdn" {
 
 variable "firezone_id" {
   type        = string
-  description = "Firezone gateway ID"
+  description = "Firezone gateway ID for primary gateway"
+  sensitive   = true
+}
+
+variable "firezone_id_secondary" {
+  type        = string
+  description = "Firezone gateway ID for secondary gateway"
   sensitive   = true
 }
 
 variable "firezone_token" {
   type        = string
-  description = "Firezone authentication token for gateway registration"
+  description = "Firezone authentication token for primary gateway registration"
+  sensitive   = true
+}
+
+variable "firezone_token_secondary" {
+  type        = string
+  description = "Firezone authentication token for secondary gateway registration"
   sensitive   = true
 }
 

@@ -23,7 +23,7 @@ module "firezone_primary" {
   subnet_name        = var.primary_subnet_name
   vm_size            = var.vm_size
   ssh_public_key     = var.ssh_public_key
-  enable_public_ip   = false  # Use load balancer IP
+  enable_public_ip   = false
   firezone_id        = var.firezone_id
   firezone_token     = var.firezone_token
   log_level          = var.log_level
@@ -40,9 +40,9 @@ module "firezone_secondary" {
   subnet_name        = var.secondary_subnet_name
   vm_size            = var.vm_size
   ssh_public_key     = var.ssh_public_key
-  enable_public_ip   = false  # Use load balancer IP
-  firezone_id        = var.firezone_id
-  firezone_token     = var.firezone_token
+  enable_public_ip   = false
+  firezone_id        = var.firezone_id_secondary
+  firezone_token     = var.firezone_token_secondary
   log_level          = var.log_level
   tags               = merge(var.tags, { Region = var.secondary_region })
 }
