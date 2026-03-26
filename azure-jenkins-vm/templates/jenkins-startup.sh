@@ -164,7 +164,9 @@ if [ -n "$KV_NAME" ]; then
         -out   "$CERT_DIR/jenkins.p12" \
         -passout pass:changeit \
         -name jenkins
-      chmod 600 "$CERT_DIR/jenkins.p12"
+      # Fix permissions so jenkins user can read the keystore
+      chown -R jenkins:jenkins "$CERT_DIR"
+      chmod 640 "$CERT_DIR/jenkins.p12"
 
       # Install Root CA
       cp "$CERT_DIR/root-ca.pem" /usr/local/share/ca-certificates/myorg-root-ca.crt
